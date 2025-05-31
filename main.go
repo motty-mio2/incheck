@@ -21,7 +21,6 @@ func main() {
 	} else {
 		os.Exit(1)
 	}
-
 }
 
 // Ping the host
@@ -38,7 +37,9 @@ func ping_to_host(host string) bool {
 		return false
 	}
 
-	return true
+	stats := pinger.Statistics()
+
+	return stats.PacketLoss == 0
 }
 
 // Nslookup
