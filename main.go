@@ -4,46 +4,35 @@ import (
 	"flag"
 	"net"
 	"os"
-	"runtime"
-
-	probing "github.com/prometheus-community/pro-bing"
+	"strings"
 )
 
 func main() {
 	var (
-		ipaddr = flag.String("i", "", "IP address to check")
-		host   = flag.String("h", "", "Host to check")
+		host       = flag.String("h", "", "Host to check")
+		ipAddrList = []string{}
 	)
+
+	var ipaddr string
+	flag.Func("i", "IP address to check", func(s string) error {
+		ipaddr = s
+		ipAddrList = append(ipAddrList, ipaddr)
+		return nil
+	})
 
 	flag.Parse()
 
-	if ping_to_host(*ipaddr) && nslookup(*host) {
+	success := false
+	for _, ip := range ipAddrList {
+		ip = strings.TrimSpace(ip)
+		success = success || check_ipaddr(ip)
+	}
+
+	if success && nslookup(*host) {
 		os.Exit(0)
 	} else {
 		os.Exit(1)
 	}
-}
-
-// Ping the host
-func ping_to_host(host string) bool {
-	pinger, err := probing.NewPinger(host)
-	pinger.SetPrivileged(true)
-	if err != nil {
-		return false
-	}
-	if runtime.GOOS != "windows" {
-		pinger.SetDoNotFragment(true)
-	}
-	pinger.Count = 1
-	pinger.Timeout = 3000000000
-	err = pinger.Run()
-	if err != nil {
-		return false
-	}
-
-	stats := pinger.Statistics()
-
-	return stats.PacketLoss == 0
 }
 
 // Nslookup
