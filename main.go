@@ -4,6 +4,7 @@ import (
 	"flag"
 	"net"
 	"os"
+	"runtime"
 
 	probing "github.com/prometheus-community/pro-bing"
 )
@@ -26,9 +27,12 @@ func main() {
 // Ping the host
 func ping_to_host(host string) bool {
 	pinger, err := probing.NewPinger(host)
-	pinger.SetDoNotFragment(true)
+	pinger.SetPrivileged(true)
 	if err != nil {
 		return false
+	}
+	if runtime.GOOS != "windows" {
+		pinger.SetDoNotFragment(true)
 	}
 	pinger.Count = 1
 	pinger.Timeout = 3000000000
