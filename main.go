@@ -4,7 +4,8 @@ import (
 	"flag"
 	"net"
 	"os"
-	"strings"
+	"runtime"
+	"os/exec"
 )
 
 func main() {
@@ -22,17 +23,26 @@ func main() {
 
 	flag.Parse()
 
-	success := false
-	for _, ip := range ipAddrList {
-		ip = strings.TrimSpace(ip)
-		success = success || check_ipaddr(ip)
-	}
-
-	if success && nslookup(*host) {
+	if nslookup(*host) {
 		os.Exit(0)
 	} else {
 		os.Exit(1)
 	}
+}
+
+func exec_ping(host string) bool {
+	var cmd *exec.Cmd
+	if runtime.GOOS != "windows" {
+		cmd = exec.Command("ping", "-c", "1", host)
+		} else {
+		cmd = exec.Command("ping", "-n", "1", host)
+	}
+
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 // Nslookup
