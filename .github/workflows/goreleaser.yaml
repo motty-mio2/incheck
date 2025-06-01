@@ -1,8 +1,9 @@
 name: goreleaser
 
 on:
-  pull_request:
   push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0
 
 permissions:
   contents: write
